@@ -1,4 +1,4 @@
-# 🚛 Gestão de Frota — DW2 IFCE
+#  Gestão de Frota — DW2 IFCE
 
 Sistema de Gestão de Frota desenvolvido para a disciplina **Desenvolvimento Web II** do curso de Informática para Internet EAD do IFCE.
 
