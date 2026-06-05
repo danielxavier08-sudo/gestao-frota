@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestão de Frota — DW2 IFCE</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<!-- ── Toast container ─────────────────────────────────────── -->
+<div id="toast-container"></div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- TELA DE LOGIN                                             -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-icon">🚛</div>
+      <div>
+        <h1>Gestão de Frota</h1>
+        <span>DW2 · IFCE · Informática para Internet</span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="login-email">E-mail</label>
+      <input type="email" id="login-email" value="admin@frota.com" placeholder="admin@frota.com">
+    </div>
+    <div class="form-group">
+      <label for="login-senha">Senha</label>
+      <input type="password" id="login-senha" value="admin123" placeholder="••••••••">
+    </div>
+
+    <p id="login-erro" class="hidden"
+       style="color:var(--danger);font-size:.85rem;margin-bottom:1rem;"></p>
+
+    <button class="btn btn-primary btn-full" id="btn-login" onclick="handleLogin()">
+      Entrar →
+    </button>
+
+    <p style="text-align:center;margin-top:1.25rem;font-size:.78rem;color:var(--text-muted);">
+      Login padrão: <span class="mono">admin@frota.com</span> / <span class="mono">admin123</span>
+    </p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- APLICAÇÃO PRINCIPAL                                       -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div id="app" class="hidden">
+
+  <!-- ── Sidebar ──────────────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-icon">🚛</div>
+      <div>
+        <div class="sidebar-title">Gestão de Frota</div>
+        <div class="sidebar-sub">DW2 · IFCE</div>
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Menu</div>
+      <div class="nav-item active" data-page="dashboard" onclick="showPage('dashboard')">
+        <span class="icon">📊</span> Dashboard
+      </div>
+      <div class="nav-item" data-page="veiculos" onclick="showPage('veiculos')">
+        <span class="icon">🚛</span> Veículos
+      </div>
+      <div class="nav-item" data-page="motoristas" onclick="showPage('motoristas')">
+        <span class="icon">👤</span> Motoristas
+      </div>
+      <div class="nav-item" data-page="oficinas" onclick="showPage('oficinas')">
+        <span class="icon">🔧</span> Oficinas
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Sistema</div>
+      <div class="nav-item" onclick="handleLogout()">
+        <span class="icon">🚪</span> Sair
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="user-avatar" id="user-avatar">A</div>
+        <div class="user-info">
+          <div class="user-name" id="user-name">Carregando…</div>
+          <div class="user-role" id="user-role">—</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── Conteúdo ──────────────────────────────────────────── -->
+  <main class="main-content">
+
+    <!-- ── PAGE: Dashboard ──────────────────────────────── -->
+    <div id="page-dashboard">
+      <div class="page-header">
+        <div>
+          <h2>Dashboard</h2>
+          <p>Visão geral do sistema de frota</p>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value" id="dash-veiculos">—</div>
+          <div class="stat-label">Total de Veículos</div>
+        </div>
+        <div class="stat-card" style="--accent:var(--success)">
+          <div class="stat-value" id="dash-ativos">—</div>
+          <div class="stat-label">Veículos Ativos</div>
+        </div>
+        <div class="stat-card" style="--accent:var(--accent2)">
+          <div class="stat-value" id="dash-motoristas">—</div>
+          <div class="stat-label">Motoristas</div>
+        </div>
+        <div class="stat-card" style="--accent:var(--warning)">
+          <div class="stat-value" id="dash-oficinas">—</div>
+          <div class="stat-label">Oficinas Ativas</div>
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <div class="table-toolbar">
+          <span class="table-title">🚛 Últimos Veículos</span>
+          <button class="btn btn-primary btn-sm" onclick="showPage('veiculos')">Ver todos →</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Placa</th><th>Modelo</th><th>Ano</th><th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-dash-veiculos">
+            <tr class="loading-row"><td colspan="4"><div class="spinner"></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── PAGE: Veículos ────────────────────────────────── -->
+    <div id="page-veiculos" class="hidden">
+      <div class="page-header">
+        <div>
+          <h2>🚛 Veículos</h2>
+          <p>Gerencie a frota de veículos</p>
+        </div>
+        <button class="btn btn-primary" onclick="abrirCriarVeiculo()">+ Novo Veículo</button>
+      </div>
+
+      <div class="table-wrapper">
+        <div class="table-toolbar">
+          <span class="table-title">Lista de Veículos</span>
+          <input class="search-input" type="text" placeholder="🔍 Buscar…"
+                 oninput="filtrarVeiculos(this.value)">
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th><th>Placa</th><th>Modelo</th><th>Ano</th>
+              <th>Km</th><th>Status</th><th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-veiculos">
+            <tr class="loading-row"><td colspan="7"><div class="spinner"></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── PAGE: Motoristas ──────────────────────────────── -->
+    <div id="page-motoristas" class="hidden">
+      <div class="page-header">
+        <div>
+          <h2>👤 Motoristas</h2>
+          <p>Gerencie os motoristas da frota</p>
+        </div>
+        <button class="btn btn-primary" onclick="abrirCriarMotorista()">+ Novo Motorista</button>
+      </div>
+
+      <div class="table-wrapper">
+        <div class="table-toolbar">
+          <span class="table-title">Lista de Motoristas</span>
+          <input class="search-input" type="text" placeholder="🔍 Buscar…"
+                 oninput="filtrarMotoristas(this.value)">
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th><th>Nome</th><th>CNH</th><th>Categoria</th>
+              <th>Validade</th><th>Status</th><th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-motoristas">
+            <tr class="loading-row"><td colspan="7"><div class="spinner"></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── PAGE: Oficinas ────────────────────────────────── -->
+    <div id="page-oficinas" class="hidden">
+      <div class="page-header">
+        <div>
+          <h2>🔧 Oficinas</h2>
+          <p>Gerencie as oficinas parceiras</p>
+        </div>
+        <button class="btn btn-primary" onclick="abrirCriarOficina()">+ Nova Oficina</button>
+      </div>
+
+      <div class="table-wrapper">
+        <div class="table-toolbar">
+          <span class="table-title">Lista de Oficinas</span>
+          <input class="search-input" type="text" placeholder="🔍 Buscar…"
+                 oninput="filtrarOficinas(this.value)">
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th><th>Nome</th><th>Cidade</th><th>Telefone</th>
+              <th>Especialidade</th><th>Status</th><th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-oficinas">
+            <tr class="loading-row"><td colspan="7"><div class="spinner"></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main><!-- /main-content -->
+</div><!-- /app -->
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- MODAIS                                                    -->
+<!-- ══════════════════════════════════════════════════════════ -->
+
+<!-- Modal Veículo -->
+<div id="modal-veiculo" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-veiculo-titulo">Veículo</h3>
+      <button class="modal-close" onclick="closeModal('modal-veiculo')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Placa *</label>
+        <input id="v-placa" type="text" placeholder="ABC-1234" maxlength="10">
+      </div>
+      <div class="form-group">
+        <label>Modelo *</label>
+        <input id="v-modelo" type="text" placeholder="Fiat Ducato">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+        <div class="form-group">
+          <label>Ano *</label>
+          <input id="v-ano" type="number" placeholder="2023" min="1990" max="2030">
+        </div>
+        <div class="form-group">
+          <label>Km atual</label>
+          <input id="v-km" type="number" placeholder="0" min="0">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select id="v-status">
+          <option value="ativo">Ativo</option>
+          <option value="manutencao">Manutenção</option>
+          <option value="inativo">Inativo</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-veiculo')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarVeiculo()">💾 Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Motorista -->
+<div id="modal-motorista" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-motorista-titulo">Motorista</h3>
+      <button class="modal-close" onclick="closeModal('modal-motorista')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Nome *</label>
+        <input id="m-nome" type="text" placeholder="Nome completo">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+        <div class="form-group">
+          <label>CNH *</label>
+          <input id="m-cnh" type="text" placeholder="00000000000" maxlength="20">
+        </div>
+        <div class="form-group">
+          <label>Categoria *</label>
+          <select id="m-categoria">
+            <option value="A">A</option>
+            <option value="B">B</option>
+            <option value="AB">AB</option>
+            <option value="C">C</option>
+            <option value="D">D</option>
+            <option value="E">E</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+        <div class="form-group">
+          <label>Validade CNH *</label>
+          <input id="m-validade" type="date">
+        </div>
+        <div class="form-group">
+          <label>Telefone</label>
+          <input id="m-telefone" type="text" placeholder="(85) 99999-0000">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select id="m-status">
+          <option value="ativo">Ativo</option>
+          <option value="inativo">Inativo</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-motorista')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarMotorista()">💾 Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Oficina -->
+<div id="modal-oficina" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-oficina-titulo">Oficina</h3>
+      <button class="modal-close" onclick="closeModal('modal-oficina')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Nome *</label>
+        <input id="o-nome" type="text" placeholder="Nome da oficina">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+        <div class="form-group">
+          <label>Cidade *</label>
+          <input id="o-cidade" type="text" placeholder="Fortaleza">
+        </div>
+        <div class="form-group">
+          <label>Telefone</label>
+          <input id="o-telefone" type="text" placeholder="(85) 3333-0000">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Especialidade</label>
+        <input id="o-especialidade" type="text" placeholder="Mecânica Geral">
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <select id="o-status">
+          <option value="ativa">Ativa</option>
+          <option value="inativa">Inativa</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-oficina')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarOficina()">💾 Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Scripts ───────────────────────────────────────────── -->
+<script src="/js/api.js"></script>
+<script src="/js/ui.js"></script>
+<script src="/js/veiculos.js"></script>
+<script src="/js/motoristas.js"></script>
+<script src="/js/oficinas.js"></script>
+<script src="/js/app.js"></script>
+</body>
+</html>
