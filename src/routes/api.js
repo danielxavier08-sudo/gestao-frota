@@ -34,5 +34,16 @@ router.get   ('/oficinas/:id', verificaToken, OficinaController.buscarPorId);
 router.post  ('/oficinas',     verificaToken, OficinaController.criar);
 router.put   ('/oficinas/:id', verificaToken, OficinaController.atualizar);
 router.delete('/oficinas/:id', verificaToken, OficinaController.apagar);
+// Endpoint do autor — público (sem middleware JWT)
+router.get('/autor', (req, res) => {
+  res.json({
+    nome: 'Daniel Xavier',
+    matricula: '20252062660050',
+    curso: 'Informática para Internet EAD',
+    instituicao: 'IFCE',
+    disciplina: 'Desenvolvimento Web II',
+    github: 'https://github.com/danielxavier08-sudo/gestao-frota'
+  });
+});
 
 module.exports = router;
