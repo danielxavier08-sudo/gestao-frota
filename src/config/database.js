@@ -1,6 +1,5 @@
 // src/config/database.js
 // Configuração do pool de conexões MySQL
-
 const mysql = require('mysql2/promise');
 
 const pool = mysql.createPool({
@@ -14,16 +13,5 @@ const pool = mysql.createPool({
   queueLimit:         0,
   charset:            'utf8mb4',
 });
-
-// Testa a conexão ao iniciar
-pool.getConnection()
-  .then(conn => {
-    console.log('✅  MySQL conectado — frota_db');
-    conn.release();
-  })
-  .catch(err => {
-    console.error('❌  Erro ao conectar no MySQL:', err.message);
-    console.error('    Verifique as variáveis DB_HOST, DB_USER, DB_PASSWORD, DB_NAME no .env');
-  });
 
 module.exports = pool;
