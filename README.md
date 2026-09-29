@@ -24,7 +24,9 @@ gestao-frota/
 │   └── js/
 │       ├── api.js            # Camada de comunicação com a API
 │       ├── ui.js             # Utilitários de interface
-│       ├── app.js            # Roteador e autenticação
+│       ├── router.js         # Roteador SPA (History API)
+│       ├── app.js            # Páginas públicas (Inicial, Detalhes, Autor) e login
+│       ├── usuarios.js       # Admin > Usuários
 │       ├── veiculos.js       # CRUD Veículos
 │       ├── motoristas.js     # CRUD Motoristas
 │       └── oficinas.js       # CRUD Oficinas
@@ -34,6 +36,7 @@ gestao-frota/
     │   └── database.js       # Pool de conexões MySQL
     ├── controllers/
     │   ├── authController.js
+    │   ├── usuarioController.js
     │   ├── veiculoController.js
     │   ├── motoristaController.js
     │   └── oficinaController.js
@@ -47,6 +50,27 @@ gestao-frota/
     └── routes/
         └── api.js            # Mapa de rotas REST
 ```
+
+## Rotas do front-end (SPA)
+
+A aplicação é uma *Single Page Application*: o `index.html` é carregado uma única vez e o
+`public/js/router.js` troca a *view* exibida conforme a URL (History API), sem recarregar a página.
+O servidor devolve o `index.html` para qualquer caminho do front, então links diretos e F5 funcionam.
+
+| Rota | View | Acesso |
+|---|---|---|
+| `/` | Inicial — resumo e lista de veículos | público |
+| `/veiculos/:id` | Detalhes de um veículo | público |
+| `/login` | Login | público |
+| `/admin/objeto` | Admin › Objeto (CRUD de veículos) | logado |
+| `/admin/usuarios` | Admin › Usuários (listar, criar, remover) | logado + perfil `admin` |
+| `/autor` | Autor | público |
+| `/admin/motoristas`, `/admin/oficinas` | CRUDs já existentes | logado |
+
+- Sem login, `/admin/*` redireciona para `/login?redirect=...` e volta para a página pedida após entrar.
+- `GET /api/v1/veiculos` e `GET /api/v1/veiculos/:id` são públicos (alimentam Inicial e Detalhes);
+  criar, editar e apagar continuam exigindo token JWT.
+- `/api/v1/usuarios` (GET, POST, DELETE) exige token de um usuário com perfil `admin`.
 
 ## Como rodar
 

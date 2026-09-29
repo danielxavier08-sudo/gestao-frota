@@ -1,77 +1,94 @@
-// public/js/app.js — roteador de páginas e autenticação
+// public/js/app.js — páginas públicas (Inicial, Detalhes, Autor) e autenticação
+// O roteamento fica em router.js
 
-// ── Roteador simples ──────────────────────────────────────────
-const pages = ['dashboard', 'veiculos', 'motoristas', 'oficinas'];
-
-function showPage(name) {
-  pages.forEach(p => {
-    document.getElementById(`page-${p}`)?.classList.add('hidden');
-    document.querySelector(`.nav-item[data-page="${p}"]`)?.classList.remove('active');
-  });
-  document.getElementById(`page-${name}`)?.classList.remove('hidden');
-  document.querySelector(`.nav-item[data-page="${name}"]`)?.classList.add('active');
-
-  // Carrega dados da página ativa
-  const loaders = {
-    veiculos:    carregarVeiculos,
-    motoristas:  carregarMotoristas,
-    oficinas:    carregarOficinas,
-    dashboard:   carregarDashboard,
-  };
-  loaders[name]?.();
+// Escapa texto vindo da API antes de usar em innerHTML
+function esc(v) {
+  return String(v ?? '').replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
-// ── Dashboard ─────────────────────────────────────────────────
-async function carregarDashboard() {
+// ── Inicial (/) ───────────────────────────────────────────────
+async function carregarInicial() {
+  const tbody = document.getElementById('tbody-inicial');
+  tbody.innerHTML = '<tr class="loading-row"><td colspan="5"><div class="spinner"></div></td></tr>';
   try {
-    const [veiculos, motoristas, oficinas] = await Promise.all([
-      API.veiculos.listar(),
-      API.motoristas.listar(),
-      API.oficinas.listar(),
-    ]);
-    document.getElementById('dash-veiculos').textContent   = veiculos.length;
-    document.getElementById('dash-ativos').textContent     = veiculos.filter(v => v.status === 'ativo').length;
-    document.getElementById('dash-motoristas').textContent = motoristas.length;
-    document.getElementById('dash-oficinas').textContent   = oficinas.filter(o => o.status === 'ativa').length;
+    const veiculos = await API.veiculos.listar();
+    const cont = st => veiculos.filter(v => v.status === st).length;
 
-    // Mini tabela últimos veículos
-    const tbody = document.getElementById('tbody-dash-veiculos');
-    const recentes = veiculos.slice(0, 5);
-    tbody.innerHTML = recentes.map(v => `
+    document.getElementById('dash-veiculos').textContent = veiculos.length;
+    document.getElementById('dash-ativos').textContent   = cont('ativo');
+    document.getElementById('dash-manut').textContent    = cont('manutencao');
+    document.getElementById('dash-inativos').textContent = cont('inativo');
+
+    tbody.innerHTML = veiculos.length ? veiculos.map(v => `
       <tr>
-        <td class="mono">${v.placa}</td>
-        <td>${v.modelo}</td>
-        <td class="mono">${v.ano}</td>
+        <td class="mono">${esc(v.placa)}</td>
+        <td>${esc(v.modelo)}</td>
+        <td class="mono">${esc(v.ano)}</td>
         <td>${badge(v.status)}</td>
-      </tr>`).join('');
+        <td><a class="btn btn-blue btn-sm" href="/veiculos/${encodeURIComponent(v.id)}" data-link>Detalhes →</a></td>
+      </tr>`).join('')
+      : '<tr class="loading-row"><td colspan="5">Nenhum veículo cadastrado.</td></tr>';
   } catch (err) {
     toast(err.message, 'error');
+    tbody.innerHTML = '<tr class="loading-row"><td colspan="5">Erro ao carregar dados.</td></tr>';
   }
 }
 
-// ── Login ─────────────────────────────────────────────────────
-function showLogin() {
-  document.getElementById('login-screen').classList.remove('hidden');
-  document.getElementById('app').classList.add('hidden');
-}
-
-function showApp() {
-  document.getElementById('login-screen').classList.add('hidden');
-  document.getElementById('app').classList.remove('hidden');
-
-  const user = Auth.getUser();
-  if (user) {
-    document.getElementById('user-name').textContent  = user.nome;
-    document.getElementById('user-role').textContent  = user.perfil;
-    document.getElementById('user-avatar').textContent = user.nome.charAt(0).toUpperCase();
+// ── Detalhes (/veiculos/:id) ──────────────────────────────────
+async function carregarDetalhes(id) {
+  const box = document.getElementById('det-conteudo');
+  document.getElementById('det-editar').classList.toggle('hidden', !Auth.isLogged());
+  box.innerHTML = '<div class="spinner" style="margin:2rem auto"></div>';
+  try {
+    const v = await API.veiculos.buscar(id);
+    document.getElementById('det-titulo').textContent = `${v.modelo} · ${v.placa}`;
+    box.innerHTML = `
+      <table>
+        <tbody>
+          <tr><th>ID</th><td class="mono">${esc(v.id)}</td></tr>
+          <tr><th>Placa</th><td class="mono">${esc(v.placa)}</td></tr>
+          <tr><th>Modelo</th><td>${esc(v.modelo)}</td></tr>
+          <tr><th>Ano</th><td class="mono">${esc(v.ano)}</td></tr>
+          <tr><th>Quilometragem</th><td class="mono">${fmtKm(v.km)}</td></tr>
+          <tr><th>Status</th><td>${badge(v.status)}</td></tr>
+          <tr><th>Cadastrado em</th><td>${fmtData(v.criado_em)}</td></tr>
+          <tr><th>Atualizado em</th><td>${fmtData(v.atualizado_em)}</td></tr>
+        </tbody>
+      </table>`;
+  } catch (err) {
+    document.getElementById('det-titulo').textContent = 'Veículo não encontrado';
+    box.innerHTML = `<p style="padding:1.5rem">${esc(err.message)}</p>`;
   }
-  showPage('dashboard');
 }
 
+// ── Autor (/autor) ────────────────────────────────────────────
+async function carregarAutor() {
+  const box = document.getElementById('autor-conteudo');
+  box.innerHTML = '<div class="spinner" style="margin:2rem auto"></div>';
+  try {
+    const a = await API.autor();
+    box.innerHTML = `
+      <table>
+        <tbody>
+          <tr><th>Nome</th><td>${esc(a.nome)}</td></tr>
+          <tr><th>Matrícula</th><td class="mono">${esc(a.matricula)}</td></tr>
+          <tr><th>Curso</th><td>${esc(a.curso)}</td></tr>
+          <tr><th>Instituição</th><td>${esc(a.instituicao)}</td></tr>
+          <tr><th>Disciplina</th><td>${esc(a.disciplina)}</td></tr>
+          <tr><th>GitHub</th><td><a href="${esc(a.github)}" target="_blank" rel="noopener" style="color:var(--accent)">${esc(a.github)}</a></td></tr>
+        </tbody>
+      </table>`;
+  } catch (err) {
+    box.innerHTML = `<p style="padding:1.5rem">${esc(err.message)}</p>`;
+  }
+}
+
+// ── Login (/login) ────────────────────────────────────────────
 async function handleLogin() {
-  const email = document.getElementById('login-email').value.trim();
-  const senha = document.getElementById('login-senha').value;
-  const btn   = document.getElementById('btn-login');
+  const email  = document.getElementById('login-email').value.trim();
+  const senha  = document.getElementById('login-senha').value;
+  const btn    = document.getElementById('btn-login');
   const erroEl = document.getElementById('login-erro');
 
   if (!email || !senha) {
@@ -88,33 +105,29 @@ async function handleLogin() {
     const data = await API.login(email, senha);
     Auth.setToken(data.token);
     Auth.setUser(data.usuario);
-    showApp();
+
+    // Volta para a página que o usuário tentou abrir (só caminhos internos)
+    const redirect = new URLSearchParams(location.search).get('redirect');
+    Router.navigate(redirect && redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : '/admin/objeto');
   } catch (err) {
     erroEl.textContent = err.message;
     erroEl.classList.remove('hidden');
   } finally {
     btn.disabled = false;
-    btn.textContent = 'Entrar';
+    btn.textContent = 'Entrar →';
   }
 }
 
 function handleLogout() {
   Auth.removeToken();
-  showLogin();
   toast('Sessão encerrada.', 'info');
+  Router.navigate('/');
 }
 
 // ── Init ──────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  // Enter no login
   document.getElementById('login-senha')?.addEventListener('keydown', e => {
     if (e.key === 'Enter') handleLogin();
   });
-
-  // Verifica se já está logado
-  if (Auth.isLogged()) {
-    showApp();
-  } else {
-    showLogin();
-  }
+  Router.init();
 });

@@ -11,6 +11,18 @@ const UsuarioModel = {
     return rows[0] || null;
   },
 
+  async listar() {
+    const [rows] = await db.query(
+      'SELECT id, nome, email, perfil, criado_em FROM usuarios ORDER BY criado_em DESC'
+    );
+    return rows;
+  },
+
+  async apagar(id) {
+    const [result] = await db.query('DELETE FROM usuarios WHERE id = ?', [id]);
+    return result.affectedRows > 0;
+  },
+
   async criar({ nome, email, senha, perfil }) {
     const hash = await bcrypt.hash(senha, 10);
     const [result] = await db.query(

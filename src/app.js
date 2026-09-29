@@ -20,6 +20,7 @@ app.use(express.static(path.join(__dirname, '..', 'public')));
 
 // ── API REST ─────────────────────────────────────────────────
 app.use('/api/v1', apiRoutes);
+app.use('/api', (req, res) => res.status(404).json({ erro: 'Rota da API não encontrada.' }));
 
 // ── SPA fallback — serve o index.html para rotas do front ────
 app.get('*', (req, res) => {

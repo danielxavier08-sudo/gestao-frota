@@ -21,9 +21,13 @@ async function apiFetch(path, options = {}) {
   const res = await fetch(API_BASE + path, { ...options, headers });
 
   if (res.status === 401) {
-    Auth.removeToken();
-    showLogin();
-    throw new Error('Sessão expirada. Faça login novamente.');
+    // 401 em rota protegida: limpa a sessão e leva ao /login
+    // (o login em si também responde 401 com "credenciais inválidas")
+    if (Auth.isLogged()) {
+      Auth.removeToken();
+      Router.navigate('/login');
+      throw new Error('Sessão expirada. Faça login novamente.');
+    }
   }
 
   const data = await res.json().catch(() => ({}));
@@ -60,6 +64,14 @@ const API = {
     atualizar:    (id, b) => apiFetch(`/oficinas/${id}`, { method: 'PUT',    body: JSON.stringify(b) }),
     apagar:       (id)    => apiFetch(`/oficinas/${id}`, { method: 'DELETE' }),
   },
+  // Usuários (admin)
+  usuarios: {
+    listar:       ()      => apiFetch('/usuarios'),
+    criar:        (body)  => apiFetch('/usuarios', { method: 'POST',   body: JSON.stringify(body) }),
+    apagar:       (id)    => apiFetch(`/usuarios/${id}`, { method: 'DELETE' }),
+  },
+  // Autor (público)
+  autor: () => apiFetch('/autor'),
   // Auth
   login: (email, senha) => apiFetch('/auth/login', { method: 'POST', body: JSON.stringify({ email, senha }) }),
 };

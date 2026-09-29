@@ -20,8 +20,15 @@ function verificaToken(req, res, next) {
   }
 }
 
+function verificaAdmin(req, res, next) {
+  if (!req.usuario || req.usuario.perfil !== 'admin') {
+    return res.status(403).json({ erro: 'Acesso restrito a administradores.' });
+  }
+  next();
+}
+
 function geraToken(payload) {
   return jwt.sign(payload, SECRET, { expiresIn: '8h' });
 }
 
-module.exports = { verificaToken, geraToken };
+module.exports = { verificaToken, verificaAdmin, geraToken };
