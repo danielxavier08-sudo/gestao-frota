@@ -2,11 +2,12 @@
 const express    = require('express');
 const router     = express.Router();
 
-const { verificaToken }      = require('../middlewares/auth');
+const { verificaToken, verificaAdmin } = require('../middlewares/auth');
 const AuthController         = require('../controllers/authController');
 const VeiculoController      = require('../controllers/veiculoController');
 const MotoristaController    = require('../controllers/motoristaController');
 const OficinaController      = require('../controllers/oficinaController');
+const UsuarioController      = require('../controllers/usuarioController');
 
 // ── Auth (público) ──────────────────────────────────────────
 router.post('/auth/login', AuthController.login);
@@ -14,9 +15,10 @@ router.post('/auth/login', AuthController.login);
 // ── Health check ────────────────────────────────────────────
 router.get('/', (req, res) => res.json({ status: 'ok', sistema: 'Gestão de Frota DW2' }));
 
-// ── Veículos (protegido) ─────────────────────────────────────
-router.get   ('/veiculos',     verificaToken, VeiculoController.listar);
-router.get   ('/veiculos/:id', verificaToken, VeiculoController.buscarPorId);
+// ── Veículos ────────────────────────────────────────────────
+// Leitura pública (rotas SPA "Inicial" e "Detalhes"); escrita protegida
+router.get   ('/veiculos',     VeiculoController.listar);
+router.get   ('/veiculos/:id', VeiculoController.buscarPorId);
 router.post  ('/veiculos',     verificaToken, VeiculoController.criar);
 router.put   ('/veiculos/:id', verificaToken, VeiculoController.atualizar);
 router.delete('/veiculos/:id', verificaToken, VeiculoController.apagar);
@@ -34,6 +36,11 @@ router.get   ('/oficinas/:id', verificaToken, OficinaController.buscarPorId);
 router.post  ('/oficinas',     verificaToken, OficinaController.criar);
 router.put   ('/oficinas/:id', verificaToken, OficinaController.atualizar);
 router.delete('/oficinas/:id', verificaToken, OficinaController.apagar);
+// ── Usuários (somente admin) ─────────────────────────────────
+router.get   ('/usuarios',     verificaToken, verificaAdmin, UsuarioController.listar);
+router.post  ('/usuarios',     verificaToken, verificaAdmin, UsuarioController.criar);
+router.delete('/usuarios/:id', verificaToken, verificaAdmin, UsuarioController.apagar);
+
 // Endpoint do autor — público (sem middleware JWT)
 router.get('/autor', (req, res) => {
   res.json({
