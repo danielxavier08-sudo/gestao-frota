@@ -1,6 +1,6 @@
 -- ============================================================
 --  frota_db — Script de criação do banco de dados
---  DW2 IFCE — Gestão de Frota
+--  DW3 IFCE — Gestão de Frota
 -- ============================================================
 
 CREATE DATABASE IF NOT EXISTS frota_db

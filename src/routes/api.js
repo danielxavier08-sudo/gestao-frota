@@ -13,7 +13,7 @@ const UsuarioController      = require('../controllers/usuarioController');
 router.post('/auth/login', AuthController.login);
 
 // ── Health check ────────────────────────────────────────────
-router.get('/', (req, res) => res.json({ status: 'ok', sistema: 'Gestão de Frota DW2' }));
+router.get('/', (req, res) => res.json({ status: 'ok', sistema: 'Gestão de Frota DW3' }));
 
 // ── Veículos ────────────────────────────────────────────────
 // Leitura pública (rotas SPA "Inicial" e "Detalhes"); escrita protegida
@@ -48,7 +48,7 @@ router.get('/autor', (req, res) => {
     matricula: '20252062660050',
     curso: 'Informática para Internet EAD',
     instituicao: 'IFCE',
-    disciplina: 'Desenvolvimento Web II',
+    disciplina: 'Desenvolvimento Web III',
     github: 'https://github.com/danielxavier08-sudo/gestao-frota'
   });
 });

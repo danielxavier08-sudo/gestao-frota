@@ -29,7 +29,7 @@ app.get('*', (req, res) => {
 
 // ── Inicia servidor ──────────────────────────────────────────
 app.listen(PORT, () => {
-  console.log(`\n🚛  Gestão de Frota — DW2 IFCE`);
+  console.log(`\n🚛  Gestão de Frota — DW3 IFCE`);
   console.log(`📡  Servidor rodando em http://localhost:${PORT}`);
   console.log(`🔑  Login: admin@frota.com / admin123\n`);
 });

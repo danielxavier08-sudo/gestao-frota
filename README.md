@@ -1,6 +1,6 @@
-#  Gestão de Frota — DW2 IFCE
+#  Gestão de Frota — DW3 IFCE
 
-Sistema de Gestão de Frota desenvolvido para a disciplina **Desenvolvimento Web II** do curso de Informática para Internet EAD do IFCE.
+Sistema de Gestão de Frota desenvolvido para a disciplina **Desenvolvimento Web III** do curso de Informática para Internet EAD do IFCE.
 
 ## Stack
 
@@ -165,4 +165,4 @@ git merge feature/crud
 - **usuarios** — nome, email, senha_hash, perfil
 
 ---
-IFCE · Informática para Internet EAD · DW2 · Etapas 1–7
+IFCE · Informática para Internet EAD · DW3 · Etapas 1–7
